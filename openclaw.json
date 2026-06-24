@@ -1,0 +1,141 @@
+{
+  "agents": {
+    "defaults": {
+      "workspace": "~/.openclaw/workspace",
+      "model": {
+        "primary": "bailian/qwen-plus",
+        "fallbacks": ["bailian/deepseek-r1"]
+      },
+      "temperature": 0.2,
+      "heartbeat": {
+        "every": "30m",
+        "target": "last"
+      },
+      "sandbox": {
+        "mode": "non-main"
+      }
+    },
+    "list": [
+      {
+        "id": "product-research",
+        "name": "选品分析员",
+        "workspace": "~/.openclaw/workspace"
+      }
+    ]
+  },
+  "models": {
+    "providers": {
+      "bailian": {
+        "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        "apiKey": "${BAILIAN_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          { "id": "qwen-plus", "name": "通义千问Plus" },
+          { "id": "deepseek-r1", "name": "DeepSeek R1" }
+        ]
+      },
+      "openai": {
+        "baseUrl": "https://api.openai.com/v1",
+        "apiKey": "${OPENAI_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          { "id": "gpt-4o", "name": "GPT-4o" }
+        ]
+      }
+    }
+  },
+  "channels": {
+    "feishu": {
+      "enabled": true,
+      "dmPolicy": "allowlist",
+      "allowFrom": ["${FEISHU_ALLOW_USER_IDS}"],
+      "streaming": true,
+      "threadSession": true,
+      "accounts": {
+        "product-bot": {
+          "appId": "${FEISHU_APP_ID}",
+          "clientSecret": "${FEISHU_APP_SECRET}"
+        }
+      }
+    },
+    "dingtalk": {
+      "enabled": false,
+      "dmPolicy": "allowlist"
+    },
+    "webui": {
+      "enabled": true
+    }
+  },
+  "bindings": [
+    {
+      "agentId": "product-research",
+      "match": {
+        "channel": "feishu",
+        "accountId": "product-bot"
+      }
+    }
+  ],
+  "gateway": {
+    "port": 18789,
+    "auth": {
+      "mode": "token",
+      "token": "${OPENCLAW_GATEWAY_TOKEN}"
+    }
+  },
+  "cron": [
+    {
+      "id": "morning-product-scan",
+      "schedule": "0 8 * * *",
+      "timezone": "Asia/Shanghai",
+      "payload": {
+        "kind": "systemEvent",
+        "text": "执行早间选品扫描：检查已监控品类的排名变化、趋势波动、TikTok新热点。如有异常数据，生成告警报告并发送到飞书群。"
+      }
+    },
+    {
+      "id": "evening-product-scan",
+      "schedule": "0 20 * * *",
+      "timezone": "Asia/Shanghai",
+      "payload": {
+        "kind": "systemEvent",
+        "text": "执行晚间选品扫描：复查早间异常是否持续、扫描新品上架、更新竞品价格。如有新机会，生成简报并通知。"
+      }
+    },
+    {
+      "id": "weekly-review",
+      "schedule": "0 18 * * 5",
+      "timezone": "Asia/Shanghai",
+      "payload": {
+        "kind": "systemEvent",
+        "text": "执行周度选品复盘：汇总本周所有调研结果、更新各品类置信度、标记需要重新调研的市场。生成周报发送到飞书群。"
+      }
+    }
+  ],
+  "tools": {
+    "profile": "full",
+    "web": {
+      "search": {
+        "enabled": true
+      }
+    }
+  },
+  "plugins": {
+    "entries": {
+      "product-research": {
+        "enabled": true,
+        "config": {
+          "amazonApiKey": "${AMAZON_API_KEY}",
+          "amazonApiBaseUrl": "${AMAZON_API_BASE_URL:-https://api.example.com/amazon}",
+          "googleTrendsKey": "${GOOGLE_TRENDS_KEY}",
+          "googleTrendsApiBaseUrl": "${GOOGLE_TRENDS_API_BASE_URL:-https://api.example.com/trends}",
+          "tiktokApiKey": "${TIKTOK_API_KEY}",
+          "tiktokApiBaseUrl": "${TIKTOK_API_BASE_URL:-https://api.example.com/tiktok}",
+          "tavilyApiKey": "${TAVILY_API_KEY}",
+          "defaultTimeoutSeconds": 30,
+          "maxConcurrentRequests": 3,
+          "minPositiveSignals": 3
+        }
+      }
+    }
+  }
+}
