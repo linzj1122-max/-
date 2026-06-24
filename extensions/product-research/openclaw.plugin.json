@@ -1,0 +1,65 @@
+{
+  "id": "product-research",
+  "name": "Product Research Engine",
+  "version": "1.0.0",
+  "description": "Cross-platform product research: Amazon + Google Trends + TikTok data aggregation with cross-validation analysis for e-commerce product selection.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [],
+    "properties": {
+      "amazonApiKey": {
+        "type": "string",
+        "description": "Amazon product API key (or third-party tool like Helium 10 / Jungle Scout)"
+      },
+      "amazonApiBaseUrl": {
+        "type": "string",
+        "default": "https://api.example.com/amazon",
+        "description": "Amazon API base URL"
+      },
+      "googleTrendsKey": {
+        "type": "string",
+        "description": "Google Trends API key (or SERP API key with Trends access)"
+      },
+      "googleTrendsApiBaseUrl": {
+        "type": "string",
+        "default": "https://api.example.com/trends",
+        "description": "Google Trends API base URL"
+      },
+      "tiktokApiKey": {
+        "type": "string",
+        "description": "TikTok data API key"
+      },
+      "tiktokApiBaseUrl": {
+        "type": "string",
+        "default": "https://api.example.com/tiktok",
+        "description": "TikTok API base URL"
+      },
+      "tavilyApiKey": {
+        "type": "string",
+        "description": "Tavily API key for fallback web search"
+      },
+      "defaultTimeoutSeconds": {
+        "type": "number",
+        "default": 30,
+        "minimum": 5,
+        "maximum": 120,
+        "description": "Default request timeout in seconds"
+      },
+      "maxConcurrentRequests": {
+        "type": "number",
+        "default": 3,
+        "minimum": 1,
+        "maximum": 10,
+        "description": "Maximum concurrent API requests"
+      },
+      "minPositiveSignals": {
+        "type": "number",
+        "default": 3,
+        "minimum": 2,
+        "maximum": 3,
+        "description": "Minimum positive signals required to recommend entering a niche"
+      }
+    }
+  }
+}
