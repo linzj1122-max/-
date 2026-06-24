@@ -1,0 +1,22 @@
+name = "product-research-api"
+main = "src/worker.ts"
+compatibility_date = "2024-12-01"
+
+[rules]
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = true
+
+[vars]
+ENVIRONMENT = "production"
+
+[[kv_namespaces]]
+binding = "RESEARCH_KV"
+id = "YOUR_KV_NAMESPACE_ID"
+
+[triggers]
+crons = ["0 0 * * *", "0 12 * * *", "0 10 * * 5"]
+
+[observability]
+enabled = true
