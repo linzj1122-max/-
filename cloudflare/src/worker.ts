@@ -153,6 +153,8 @@ async function handleApiRoute(
       env,
     );
 
+    const deepReport = await generateDeepReport(keyword, amazonData, trendsData, tiktokData, analysis, env);
+
     const report = {
       keyword,
       timestamp: new Date().toISOString(),
@@ -162,6 +164,7 @@ async function handleApiRoute(
         tiktok: tiktokData,
       },
       analysis,
+      deep_report: deepReport,
     };
 
     ctx.waitUntil(
@@ -296,4 +299,78 @@ async function runWeeklyReview(env: Env, dateStr: string): Promise<void> {
     JSON.stringify({ date: dateStr, summary: weeklySummary, timestamp: new Date().toISOString() }),
     { expirationTtl: 7776000 },
   );
+}
+
+async function generateDeepReport(
+  keyword: string,
+  amazonData: any,
+  trendsData: any,
+  tiktokData: any,
+  analysis: any,
+  env: Env,
+): Promise<string> {
+  const { chatWithAI } = await import("./ai");
+
+  const dataSummary = [
+    `## Amazon 数据`,
+    `- 竞争度: ${amazonData?.competition_score || "N/A"}`,
+    `- 市场需求: ${amazonData?.market_demand || "N/A"}`,
+    `- 价格区间: $${amazonData?.price_range?.min || "??"} - $${amazonData?.price_range?.max || "??"} (中位价 $${amazonData?.price_range?.median || "??"})`,
+    `- 评论主题: ${(amazonData?.review_themes || []).join(", ") || "无"}`,
+    `- 头部产品: ${(amazonData?.top_products || []).slice(0, 3).map((p: any) => `${p.title} $${p.price} ${p.rating}星 ${p.review_count}评`).join("; ") || "无"}`,
+    ``,
+    `## Google Trends 数据`,
+    `- 趋势方向: ${trendsData?.trend_direction || "N/A"}`,
+    `- 年增长率: ${trendsData?.growth_rate_12m || 0}%`,
+    `- 季节性: ${trendsData?.seasonality || "N/A"}`,
+    `- 旺季月份: ${(trendsData?.peak_months || []).join(", ") || "N/A"}`,
+    `- 相关搜索: ${(trendsData?.related_queries || []).join(", ") || "无"}`,
+    ``,
+    `## TikTok 数据`,
+    `- 病毒潜力: ${tiktokData?.viral_potential || "N/A"}`,
+    `- 互动率: ${tiktokData?.engagement_rate || 0}%`,
+    `- 总浏览: ${tiktokData?.total_views || 0}`,
+    `- 热门标签: ${(tiktokData?.trending_hashtags || []).join(", ") || "无"}`,
+    `- 审美趋势: ${(tiktokData?.aesthetic_themes || []).join(", ") || "无"}`,
+    ``,
+    `## 交叉分析结果`,
+    `- 推荐: ${analysis?.recommendation || "N/A"}`,
+    `- 置信度: ${analysis?.confidence || "N/A"}`,
+    `- 信号: ${JSON.stringify(analysis?.signal_summary || {})}`,
+    `- 冲突: ${(analysis?.conflicts || []).join("; ") || "无"}`,
+    `- 风险: ${(analysis?.risks || []).join("; ") || "无"}`,
+  ].join("\n");
+
+  const prompt = [
+    {
+      role: "system",
+      content: `你是一位资深跨境电商选品顾问，擅长从 Amazon / Google Trends / TikTok 三方数据中提炼可执行的选品建议。
+
+你的报告必须包含以下结构，每个部分都要有具体数据和可执行建议：
+
+1. **选品总览** — 列出 3-5 个相关细分产品，包含竞争度(1-5星)、推荐指数(1-5星)、1688参考价、建议零售价
+2. **每个产品的详细分析**:
+   - 市场数据（亚马逊排名/月销量/评价数/TikTok播放量）
+   - 产品规格建议
+   - 1688 采购信息（搜索关键词、参考价、MOQ、货期）
+   - 差异化建议（3条以上）
+3. **采购行动清单** — 分步骤的操作指南
+4. **风险提示和合规提醒**
+
+注意：
+- 1688价格和工厂信息基于你的行业知识给出合理估算
+- 所有建议必须基于提供的数据，不要编造具体产品链接
+- 用中文输出，价格用美元和人民币双标`,
+    },
+    {
+      role: "user",
+      content: `关键词: "${keyword}"\n\n以下是采集到的数据：\n\n${dataSummary}\n\n请生成完整的选品调研报告。`,
+    },
+  ];
+
+  try {
+    return await chatWithAI(prompt, env);
+  } catch (err: any) {
+    return `深度报告生成失败: ${err.message}`;
+  }
 }
