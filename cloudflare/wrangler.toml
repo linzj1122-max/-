@@ -2,7 +2,6 @@ name = "product-research-api"
 main = "src/worker.ts"
 compatibility_date = "2024-12-01"
 
-[rules]
 [[rules]]
 type = "Text"
 globs = ["**/*.html"]
@@ -13,7 +12,7 @@ ENVIRONMENT = "production"
 
 [[kv_namespaces]]
 binding = "RESEARCH_KV"
-id = "YOUR_KV_NAMESPACE_ID"
+id = "c66eacf2d1314ecbac8ba8624c4d1642"
 
 [triggers]
 crons = ["0 0 * * *", "0 12 * * *", "0 10 * * 5"]

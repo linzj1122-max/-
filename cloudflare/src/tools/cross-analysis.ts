@@ -1,5 +1,5 @@
-import { Env } from "./types";
-import { getMinPositiveSignals } from "./utils";
+import { Env } from "../types";
+import { getMinPositiveSignals } from "../utils";
 
 export async function handleCrossAnalysis(
   params: {

@@ -1,5 +1,5 @@
-import { Env } from "./types";
-import { fetchWithTimeout, getTimeoutMs } from "./utils";
+import { Env } from "../types";
+import { fetchWithTimeout, getTimeoutMs } from "../utils";
 
 export async function handleGoogleTrendsResearch(
   params: {
