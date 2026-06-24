@@ -1,5 +1,6 @@
 import { Env } from "../types";
 import { fetchWithTimeout, getTimeoutMs } from "../utils";
+import { extractAmazonSignals } from "../ai";
 
 export async function handleAmazonResearch(
   params: {
@@ -42,15 +43,13 @@ export async function handleAmazonResearch(
         timeoutMs,
       );
       if (result.error) return result;
+
+      const aiSignals = await extractAmazonSignals(keyword ?? asin_list ?? "", result, env);
+
       return {
-        source: "tavily_fallback",
-        note: "Amazon API not configured; data from web search, not direct API",
-        answer: result.answer,
-        results: (result.results || []).map((r: any) => ({
-          title: r.title,
-          url: r.url,
-          content: r.content,
-        })),
+        source: "tavily_ai_analyzed",
+        note: "Amazon API not configured; data from web search + AI analysis",
+        ...aiSignals,
       };
     }
     return {

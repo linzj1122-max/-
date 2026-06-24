@@ -1,5 +1,6 @@
 import { Env } from "../types";
 import { fetchWithTimeout, getTimeoutMs } from "../utils";
+import { extractTrendsSignals } from "../ai";
 
 export async function handleGoogleTrendsResearch(
   params: {
@@ -36,15 +37,15 @@ export async function handleGoogleTrendsResearch(
         timeoutMs,
       );
       if (result.error) return result;
+
+      const aiSignals = await extractTrendsSignals(keyword ?? keywords?.join(" vs ") ?? "", result, env);
+
       return {
-        source: "tavily_fallback",
-        note: "Google Trends API not configured; data from web search",
-        answer: result.answer,
-        results: (result.results || []).map((r: any) => ({
-          title: r.title,
-          url: r.url,
-          content: r.content,
-        })),
+        source: "tavily_ai_analyzed",
+        note: "Google Trends API not configured; data from web search + AI analysis",
+        geo,
+        time_range,
+        ...aiSignals,
       };
     }
     return { error: "No Google Trends API key or Tavily key configured." };

@@ -1,5 +1,6 @@
 import { Env } from "../types";
 import { fetchWithTimeout, getTimeoutMs } from "../utils";
+import { extractTiktokSignals } from "../ai";
 
 export async function handleTiktokResearch(
   params: {
@@ -35,15 +36,13 @@ export async function handleTiktokResearch(
         timeoutMs,
       );
       if (result.error) return result;
+
+      const aiSignals = await extractTiktokSignals(keyword ?? hashtag ?? "", result, env);
+
       return {
-        source: "tavily_fallback",
-        note: "TikTok API not configured; data from web search",
-        answer: result.answer,
-        results: (result.results || []).map((r: any) => ({
-          title: r.title,
-          url: r.url,
-          content: r.content,
-        })),
+        source: "tavily_ai_analyzed",
+        note: "TikTok API not configured; data from web search + AI analysis",
+        ...aiSignals,
       };
     }
     return { error: "No TikTok API key or Tavily key configured." };
